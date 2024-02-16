@@ -22,11 +22,20 @@
 **  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import my from "../package.json"
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-export default class stmuxInfo {
-    constructor () {
-        this.my = my
-    }
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+
+export default function (Base) {
+    return class stmuxInfo extends Base {
+        constructor () {
+            super();
+            const content = fs.readFileSync(path.join(__dirname, '..', 'package.json'));
+            this.my = JSON.parse(content);
+        }
+    };
 }
 

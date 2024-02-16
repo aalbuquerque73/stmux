@@ -23,54 +23,59 @@
 **  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import aggregation     from "aggregation/es6"
+import stmuxInfo       from "./stmux-0-info.js";
+import stmuxOptions    from "./stmux-1-options.js";
+import stmuxParser     from "./stmux-2-parser.js";
+import stmuxScreen     from "./stmux-3-screen.js";
+import stmuxTitle      from "./stmux-4-title.js";
+import stmuxTerminal   from "./stmux-5-terminal.js";
+import stmuxBorder     from "./stmux-6-border.js";
+import stmuxHelp       from "./stmux-7-help.js";
+import stmuxErrors     from "./stmux-8-errors.js";
+import stmuxKeys       from "./stmux-9-keys.js";
+import stmuxMenus      from "./stmux-10-menus.js";
+import stmuxEmitter    from "./stmux-11-emitter.js";
 
-import stmuxInfo       from "./stmux-0-info"
-import stmuxOptions    from "./stmux-1-options"
-import stmuxParser     from "./stmux-2-parser"
-import stmuxScreen     from "./stmux-3-screen"
-import stmuxTitle      from "./stmux-4-title"
-import stmuxTerminal   from "./stmux-5-terminal"
-import stmuxBorder     from "./stmux-6-border"
-import stmuxHelp       from "./stmux-7-help"
-import stmuxErrors     from "./stmux-8-errors"
-import stmuxKeys       from "./stmux-9-keys"
-
-class STMUX extends aggregation(
+const Base = [
+    stmuxBorder,
+    stmuxEmitter,
+    stmuxErrors,
+    stmuxHelp,
     stmuxInfo,
+    stmuxKeys,
+    stmuxMenus,
     stmuxOptions,
     stmuxParser,
     stmuxScreen,
-    stmuxTitle,
     stmuxTerminal,
-    stmuxBorder,
-    stmuxHelp,
-    stmuxErrors,
-    stmuxKeys
-) {
-    main () {
-        this.parseOptions()
-        this.parseSpec()
-        this.establishScreen()
-        this.provisionInitially()
-        this.establishHelp()
-        this.handleErrors()
-        this.handleKeys()
-        this.renderScreen()
+    stmuxTitle,
+ ].reduce(
+    (base, child) => child(base),
+    Object
+);
+export class STMUX extends Base {
+    main (argv) {
+        this.parseOptions(argv);
+        this.parseSpec();
+        this.establishEmitter();
+        this.establishScreen();
+        this.provisionInitially();
+        this.establishHelp();
+        this.establishMenus();
+        this.handleErrors();
+        this.handleKeys();
+        this.renderScreen();
     }
     fatal (msg) {
-        process.stderr.write(`${this.my.name}: ERROR: ${msg}\n`)
-        process.exit(1)
+        this.screen?.destroy();
+        process.stderr.write(`${this.my.name}: ERROR: ${msg}\n`);
+        process.exit(1);
     }
     terminate () {
-        this.terms.forEach((t) => t.terminate())
+        this.terms.forEach((t) => t.terminate());
         setTimeout(() => {
-            this.screen.destroy()
-            process.exit(0)
-        }, 50)
+            this.screen.destroy();
+            process.exit(0);
+        }, 50);
     }
 }
-
-const stmux = new STMUX()
-stmux.main()
-

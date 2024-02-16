@@ -1,4 +1,5 @@
-/*
+#!/usr/bin/env node
+/*!
 **  stmux -- Simple Terminal Multiplexing for Node Environments
 **  Copyright (c) 2017-2023 Dr. Ralf S. Engelschall <rse@engelschall.com>
 **
@@ -21,36 +22,7 @@
 **  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 **  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+import { STMUX } from '../src/stmux.js';
 
-import path     from "path";
-import ASTY     from "asty";
-import PEG      from "pegjs-otf";
-import PEGUtil  from "pegjs-util";
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
-
-export default function (Base) {
-    return class stmuxParser extends Base {
-        parseSpec () {
-            /*  parse specification into Abstract Syntax Tree (AST)  */
-            const asty = new ASTY()
-            const parser = PEG.generateFromFile(path.join(__dirname, "stmux-2-parser.pegjs"), {
-                optimize: "size",
-                trace:    false,
-            });
-            const result = PEGUtil.parse(parser, this.spec, {
-                startRule: "split",
-                makeAST: (line, column, offset, args) => {
-                    return asty.create.apply(asty, args).pos(line, column, offset);
-                },
-            });
-            if (result.error !== null)
-                this.fatal("parsing failure:\n" +
-                    PEGUtil.errorMessage(result.error, true)
-                        .replace(/^/mg, `${this.my.name}: ERROR: `) + "\n");
-            this.ast = result.ast;
-        }
-    };
-}
+const stmux = new STMUX();
+stmux.main(process.argv);

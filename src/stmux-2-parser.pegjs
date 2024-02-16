@@ -35,11 +35,24 @@ split
             return ast("split").set({ horizontal: true }).add(unroll(dir, dirs, 3))
         }
 
+group
+    =   _ "{" _ dir:command _ dirs:(_ "," _ directive)* _ "}" _ {
+            return ast("group").add(unroll(dir, dirs, 3))
+        }
+
 directive
     =   opts:options? _ s:split { /*  RECURSION  */
             return s.merge(opts)
         }
+    /   opts:options? _ s:group { /*  RECURSION  */
+            return s.merge(opts)
+        }
     /   opts:options? _ c:string {
+            return ast("command").set({ cmd: c.get("value") }).merge(opts)
+        }
+
+command
+    =   opts:options? _ c:string {
             return ast("command").set({ cmd: c.get("value") }).merge(opts)
         }
 
@@ -54,6 +67,9 @@ option "short or long option"
     =   s:("-f" / "--focus") {
             return ast("option").set({ focus: true })
         }
+    /   s:("-m" / "--mouse") {
+            return ast("option").set({ mouse: true })
+        }
     /   s:("-r" / "--restart") {
             return ast("option").set({ restart: true })
         }
@@ -62,6 +78,12 @@ option "short or long option"
         }
     /   "--delay" (ws / "=") a:number {
             return ast("option").set({ delay: parseInt(a.get("value")) })
+        }
+    /   "-w" _ a:number {
+            return ast("option").set({ wait: parseInt(a.get("value")) })
+        }
+    /   "--wait" (ws / "=") a:number {
+            return ast("option").set({ wait: parseInt(a.get("value")) })
         }
     /   "-t" _ a:string {
             return ast("option").set({ title: a.get("value") })
@@ -74,6 +96,12 @@ option "short or long option"
         }
     /   "--size" (ws / "=") a:string {
             return ast("option").set({ size: a.get("value") })
+        }
+    /   "-c" _ a:string {
+            return ast("option").set({ cwd: a.get("value") })
+        }
+    /   "--cwd" (ws / "=") a:string {
+            return ast("option").set({ cwd: a.get("value") })
         }
     /   "-e" _ a:string {
             return ast("option").set({ error: a.get("value") })
@@ -134,6 +162,7 @@ _ "blank"
 co "comment"
     =   "//" (![\r\n] .)*
     /   "/*" (!"*/" .)* "*/"
+    /   "#" (![\r\n] .)*
 
 ws "whitespaces"
     =   [ \t\r\n]+

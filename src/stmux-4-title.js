@@ -22,25 +22,38 @@
 **  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-export default class stmuxTitle {
-    /*  determine title of terminal  */
-    setTerminalTitle (term) {
-        let title = term.node.get("title") || term.node.get("cmd")
-        title = `( {bold}${title}{/bold} )`
-        if (this.argv.number)
-            title = `[${term.stmuxNumber}]-${title}`
-        if (this.zoomed !== -1 && this.zoomed === (term.stmuxNumber - 1))
-            title = `${title}-[ZOOMED]`
-        if (term.stmuxError)
-            title = `${title}-[ERROR]`
-        if (term.scrolling)
-            title = `{yellow-fg}${title}{/yellow-fg}`
-        else if (term.stmuxError)
-            title = `{red-fg}${title}{/red-fg}`
-        else if (this.focused !== -1 && this.focused === (term.stmuxNumber - 1))
-            title = `{green-fg}${title}{/green-fg}`
-        term.stmuxTitle = title
-        term.setLabel(term.stmuxTitle)
-    }
+export default function (Base) {
+    return class stmuxTitle extends Base {
+        /*  determine title of terminal  */
+        setTerminalTitle (term, count) {
+            let title = term.node.get("title") || term.node.get("cmd");
+            if (count != null)
+                title = `( {bold}${title}{/bold} {yellow-bg}{black-fg}${count}{/black-fg}{/yellow-bg} )`;
+            else
+                title = `( {bold}${title}{/bold} )`;
+            if (this.argv.number)
+                title = `[${term.stmux.number}]-${title}`;
+            if (this.zoomed !== -1 && this.zoomed === (term.stmux.number - 1))
+                title = `${title}-[ZOOMED]`;
+            if (term.stmux.error)
+                title = `${title}-[ERROR]`;
+            if (term.stmux.mouse)
+                title = `${title}-[MOUSE]`;
+            if (term.stmux.mode === 1)
+                title = `${title}-[PREF]`;
+            if (term.stmux.mode === 2)
+                title = `${title}-[ACT]`;
+            if (term.stmux.mode === 3)
+                title = `${title}-{blue-fg}[MENU]{/blue-fg}`;
+            if (term.scrolling)
+                title = `{yellow-fg}${title}{/yellow-fg}`;
+            else if (term.stmux.error)
+                title = `{red-fg}${title}{/red-fg}`;
+            else if (this.focused !== -1 && this.focused === (term.stmux.number - 1))
+                title = `{green-fg}${title}{/green-fg}`;
+            term.stmux.title = title;
+            term.setLabel(term.stmux.title);
+        }
+    };
 }
 
